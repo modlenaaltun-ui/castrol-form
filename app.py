@@ -26,7 +26,7 @@ df_guncel_urunler = pd.DataFrame([
         "Cross 2": "Fleetguard LF16015", 
         "Liste Fiyatı": 120.0, 
         "Stok": 50,
-        "Resim": "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=300&q=80"
+        "Resim": "https://i.hizliresim.com/5msnhoer.jpg"
     },
     {
         "Kod": "32-393", 
@@ -36,7 +36,7 @@ df_guncel_urunler = pd.DataFrame([
         "Cross 2": "Donaldson P777638", 
         "Liste Fiyatı": 250.0, 
         "Stok": 30,
-        "Resim": ""
+        "Resim": "https://i.hizliresim.com/5msnhoer.jpg"
     },
     {
         "Kod": "50-501", 
@@ -56,7 +56,7 @@ df_guncel_urunler = pd.DataFrame([
         "Cross 2": "Baldwin BF7633", 
         "Liste Fiyatı": 150.0, 
         "Stok": 25,
-        "Resim": ""
+        "Resim": "https://i.hizliresim.com/5msnhoer.jpg"
     },
     {
         "Kod": "70-716", 
@@ -66,7 +66,7 @@ df_guncel_urunler = pd.DataFrame([
         "Cross 2": "Mahle HX12", 
         "Liste Fiyatı": 220.0, 
         "Stok": 15,
-        "Resim": "31-356.jpg"
+        "Resim": "https://i.hizliresim.com/5msnhoer.jpg"
     }
 ])
 
