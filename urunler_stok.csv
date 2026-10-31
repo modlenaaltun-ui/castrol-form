@@ -1,6 +1,6 @@
 Kod,Parça Adı,Marka / Model,Cross 1,Cross 2,Liste Fiyatı,Stok
-CF-1001,Yağ Filtresi,Heavy Duty / Universal,Mann W950/26,Fleetguard LF16015,1200.0,50
-CF-2005,Hava Filtresi (Dış),Volvo / Renault Kamyon,Mann C30850,Donaldson P777638,2500.0,30
-CF-2006,Hava Filtresi (İç),Volvo / Renault Kamyon,Mann CF1630,Donaldson P777639,1800.0,40
-CF-3010,Yakıt / Su Ayırıcı,Mercedes Axor / Actros,Parker R120P,Baldwin BF7633,1500.0,25
-CF-4020,Şanzıman Filtresi,ZF Şanzıman Serisi,Mann H601,Mahle HX12,2200.0,15
+31-356,Yağ Filtresi,Heavy Duty / Universal,Mann W950/26,Fleetguard LF16015,100.0,50
+32-393,Hava Filtresi (Dış),Volvo / Renault Kamyon,Mann C30850,Donaldson P777638,200.0,30
+50-506,Hava Filtresi (İç),Volvo / Renault Kamyon,Mann CF1630,Donaldson P777639,100.0,40
+72-340,Yakıt / Su Ayırıcı,Mercedes Axor / Actros,Parker R120P,Baldwin BF7633,100.0,25
+90-901,Şanzıman Filtresi,ZF Şanzıman Serisi,Mann H601,Mahle HX12,200.0,15
