@@ -16,21 +16,63 @@ st.markdown("Stoku biten ürünler listeden otomatik kaldırılır, araç ve cro
 URUN_DOSYASI = "urunler_stok.csv"
 CRM_DOSYASI = "musteri_teklifleri.csv"
 
-# Varsayılan Ürün Dosyası Yoksa Oluştur
+# GÜNCEL ÜRÜN LİSTESİ (Doğrudan kodun içine işlendi, bozulma riski yok)
+df_guncel_urunler = pd.DataFrame([
+    {
+        "Kod": "31-356", 
+        "Parça Adı": "Yağ Filtresi", 
+        "Marka / Model": "Heavy Duty / Universal", 
+        "Cross 1": "Mann W950/26", 
+        "Cross 2": "Fleetguard LF16015", 
+        "Liste Fiyatı": 120.0, 
+        "Stok": 50,
+        "Resim": "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+        "Kod": "32-393", 
+        "Parça Adı": "Hava Filtresi (Dış)", 
+        "Marka / Model": "Volvo / Renault Kamyon", 
+        "Cross 1": "Mann C30850", 
+        "Cross 2": "Donaldson P777638", 
+        "Liste Fiyatı": 250.0, 
+        "Stok": 30,
+        "Resim": ""
+    },
+    {
+        "Kod": "50-501", 
+        "Parça Adı": "Hava Filtresi (İç)", 
+        "Marka / Model": "Volvo / Renault Kamyon", 
+        "Cross 1": "Mann CF1630", 
+        "Cross 2": "Donaldson P777639", 
+        "Liste Fiyatı": 180.0, 
+        "Stok": 40,
+        "Resim": ""
+    },
+    {
+        "Kod": "92-945", 
+        "Parça Adı": "Yakıt / Su Ayırıcı", 
+        "Marka / Model": "Mercedes Axor / Actros", 
+        "Cross 1": "Parker R120P", 
+        "Cross 2": "Baldwin BF7633", 
+        "Liste Fiyatı": 150.0, 
+        "Stok": 25,
+        "Resim": ""
+    },
+    {
+        "Kod": "70-716", 
+        "Parça Adı": "Şanzıman Filtresi", 
+        "Marka / Model": "ZF Şanzıman Serisi", 
+        "Cross 1": "Mann H601", 
+        "Cross 2": "Mahle HX12", 
+        "Liste Fiyatı": 220.0, 
+        "Stok": 15,
+        "Resim": ""
+    }
+])
+
+# Eğer stok dosyası yoksa güncel listeyi kaydet
 if not os.path.exists(URUN_DOSYASI):
-    df_ilk_urunler = pd.DataFrame([
-        {
-            "Kod": "31-356", 
-            "Parça Adı": "Yağ Filtresi", 
-            "Marka / Model": "Heavy Duty / Universal", 
-            "Cross 1": "Mann W950/26", 
-            "Cross 2": "Fleetguard LF16015", 
-            "Liste Fiyatı": 1200.0, 
-            "Stok": 50,
-            "Resim": ""
-        }
-    ])
-    df_ilk_urunler.to_csv(URUN_DOSYASI, index=False)
+    df_guncel_urunler.to_csv(URUN_DOSYASI, index=False)
 
 # CRM Teklif Dosyası Yoksa Oluştur
 if not os.path.exists(CRM_DOSYASI):
@@ -43,21 +85,22 @@ if not os.path.exists(CRM_DOSYASI):
 # Excel / CSV'den ürünleri oku
 df_urunler = pd.read_csv(URUN_DOSYASI)
 
-# --- EMNİYET KONTROLÜ (Sütun adlarını otomatik düzeltir) ---
+# Sütun adlarını sabitle ve güvenli hale getir
+df_urunler.columns = [c.strip() for c in df_urunler.columns]
 kolon_duzeltme = {}
 for col in df_urunler.columns:
-    col_lower = col.strip().lower()
+    col_lower = col.lower()
     if "kod" in col_lower:
         kolon_duzeltme[col] = "Kod"
-    elif "parça" in col_lower or "urun" in col_lower or "ürün" in col_lower:
+    elif "parça" in col_lower or "urun" in col_lower or "ürün" in col_lower or "parca" in col_lower:
         kolon_duzeltme[col] = "Parça Adı"
-    elif "marka" in col_lower or "model" in col_lower or "araç" in col_lower:
+    elif "marka" in col_lower or "model" in col_lower or "araç" in col_lower or "arac" in col_lower:
         kolon_duzeltme[col] = "Marka / Model"
-    elif "cross 1" in col_lower:
+    elif "cross 1" in col_lower or "c1" in col_lower:
         kolon_duzeltme[col] = "Cross 1"
-    elif "cross 2" in col_lower:
+    elif "cross 2" in col_lower or "c2" in col_lower:
         kolon_duzeltme[col] = "Cross 2"
-    elif "fiyat" in col_lower:
+    elif "fiyat" in col_lower or "liste" in col_lower:
         kolon_duzeltme[col] = "Liste Fiyatı"
     elif "stok" in col_lower:
         kolon_duzeltme[col] = "Stok"
@@ -66,21 +109,9 @@ for col in df_urunler.columns:
 
 df_urunler = df_urunler.rename(columns=kolon_duzeltme)
 
-# Eksik zorunlu kolonlar varsa varsayılan ekle
-if 'Stok' not in df_urunler.columns:
-    df_urunler['Stok'] = 50
-if 'Liste Fiyatı' not in df_urunler.columns:
-    df_urunler['Liste Fiyatı'] = 1000.0
-if 'Marka / Model' not in df_urunler.columns:
-    df_urunler['Marka / Model'] = "Universal"
-if 'Cross 1' not in df_urunler.columns:
-    df_urunler['Cross 1'] = "-"
-if 'Cross 2' not in df_urunler.columns:
-    df_urunler['Cross 2'] = "-"
 if 'Resim' not in df_urunler.columns:
     df_urunler['Resim'] = ""
 
-# Stok ve Fiyat değerlerini sayısal formata güvenle çevir
 df_urunler['Stok'] = pd.to_numeric(df_urunler['Stok'], errors='coerce').fillna(0)
 df_urunler['Liste Fiyatı'] = pd.to_numeric(df_urunler['Liste Fiyatı'], errors='coerce').fillna(0)
 
@@ -139,9 +170,10 @@ else:
         col_img, col_detay = st.columns([1, 4])
         
         with col_img:
-            if 'Resim' in row and pd.notna(row['Resim']) and str(row['Resim']).startswith("http"):
+            resim_url = str(row['Resim']) if 'Resim' in row and pd.notna(row['Resim']) else ""
+            if resim_url.startswith("http"):
                 try:
-                    st.image(str(row['Resim']), width=100)
+                    st.image(resim_url, width=100)
                 except:
                     st.info("📦 Görsel Yüklenemedi")
             else:
@@ -182,7 +214,7 @@ if len(sepet_verileri) > 0:
     col_a.metric("Toplam Liste", f"{toplam_liste_tutar:,.2f} TL")
     col_b.metric(f"Toptancı Ödeyeceği (%{toptanci_iskonto_orani})", f"{toptanci_maliyeti:,.2f} TL")
     col_c.metric(f"Komisyonun (%{benim_komisyon_orani})", f"{komisyonum:,.2f} TL", delta="Net Kazanç")
-    col_d.metric("Toptancı Kârı", f"{(top_liste_tutar if 'top_liste_tutar' in locals() else toplam_liste_tutar - toptanci_maliyeti):,.2f} TL") # Düzeltildi
+    col_d.metric("Toptancı Kârı", f"{(toplam_liste_tutar - toptanci_maliyeti):,.2f} TL")
     
     with st.expander("Seçilen Ürünlerin Listesi"):
         st.dataframe(df_sepet)
@@ -252,4 +284,3 @@ if os.path.exists(CRM_DOSYASI):
         st.dataframe(df_kayitlar, use_container_width=True)
     else:
         st.write("Henüz kaydedilmiş sipariş bulunmuyor.")
-    
