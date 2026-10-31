@@ -16,7 +16,7 @@ st.markdown("Stoku biten ürünler listeden otomatik kaldırılır, araç ve cro
 URUN_DOSYASI = "urunler_stok.csv"
 CRM_DOSYASI = "musteri_teklifleri.csv"
 
-# 1. Ürün Veritabanı (Senin gönderdiğin güncel tablo yapısı ve resim sütunu ile)
+# 1. Ürün Veritabanı
 if not os.path.exists(URUN_DOSYASI):
     df_ilk_urunler = pd.DataFrame([
         {
@@ -27,7 +27,7 @@ if not os.path.exists(URUN_DOSYASI):
             "Cross 2": "Fleetguard LF16015", 
             "Liste Fiyatı": 1200.0, 
             "Stok": 50,
-            "Resim": "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=300&q=80" # Örnek / Yüklenen ürün görseli temeli
+            "Resim": "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=300&q=80"
         },
         {
             "Kod": "32-393", 
@@ -83,7 +83,12 @@ if not os.path.exists(CRM_DOSYASI):
 # Güncel ürünleri yükle
 df_urunler = pd.read_csv(URUN_DOSYASI)
 
-# E-posta Gönderme Fonksiyonu (evrimileri0@gmail.com adresine sabitlendi)
+# EMNİYET KONTROLÜ: Eski CSV dosyalarında 'Resim' sütunu yoksa otomatik ekle (Hata önleyici)
+if 'Resim' not in df_urunler.columns:
+    df_urunler['Resim'] = ""
+    df_urunler.to_csv(URUN_DOSYASI, index=False)
+
+# E-posta Gönderme Fonksiyonu
 def siparis_maili_gonder(MailIcerigi):
     gonderen_email = "evrimileri0@gmail.com"
     gonderen_sifre = "BURAYA_GMAIL_UYGULAMA_SIFRENIZI_YAZIN"
@@ -122,24 +127,22 @@ st.sidebar.header("⚙️ Ticari Parametreler")
 toptanci_iskonto_orani = st.sidebar.slider("Toptancı İskontosu (%)", min_value=10, max_value=50, value=30, step=5)
 benim_komisyon_orani = st.sidebar.slider("Komisyon Oranım (%)", min_value=1, max_value=15, value=5, step=1)
 
-# Ana Ekran: Ürün Kataloğu (Stoku Bitenler Listeden Kaldırılır)
+# Ana Ekran: Ürün Kataloğu
 st.subheader("📦 Ürün Kataloğu ve Stok Seçimi")
 
 sepet_verileri = []
 guncellenmis_urunler = df_urunler.copy()
 
-# Stok > 0 olan ürünleri filtrele (Stoku bitenler otomatik listeden kalkar)
+# Stok > 0 olan ürünleri filtrele
 aktif_urunler = guncellenmis_urunler[guncellenmis_urunler['Stok'] > 0]
 
 if aktif_urunler.empty:
     st.warning("⚠️ Şu anda stokta aktif ürün bulunmamaktadır.")
 else:
     for index, row in aktif_urunler.iterrows():
-        # Kolonlar halinde görsel ve detayları gösterelim
         col_img, col_detay = st.columns([1, 4])
         
         with col_img:
-            # Eğer ürünün görsel linki varsa göster, yoksa varsayılan ikon/yazı göster
             if pd.notna(row['Resim']) and str(row['Resim']).startswith("http"):
                 st.image(row['Resim'], width=100)
             else:
@@ -161,7 +164,6 @@ else:
                     "Adet": secilen_adet,
                     "Toplam Liste": toplam_tutar
                 })
-                # Orijinal dataframe üzerindeki stoku düş
                 orijinal_index = guncellenmis_urunler[guncellenmis_urunler['Kod'] == row['Kod']].index[0]
                 guncellenmis_urunler.loc[orijinal_index, 'Stok'] = row['Stok'] - secilen_adet
 
@@ -193,10 +195,8 @@ if len(sepet_verileri) > 0:
         if not firma_adi:
             st.error("Lütfen sol menüden Firma / Şirket Adı giriniz!")
         else:
-            # 1. Stokları güncelle (Stoku bitenler otomatik gizlenecek)
             guncellenmis_urunler.to_csv(URUN_DOSYASI, index=False)
             
-            # 2. Ürün özet metni
             urun_ozeti = ", ".join([f"{row['Adet']}x {row['Parça Adı']} ({row['Kod']})" for index, row in df_sepet.iterrows()])
             
             yeni_kayit = {
@@ -214,12 +214,10 @@ if len(sepet_verileri) > 0:
                 "Notlar": musteri_notu
             }
             
-            # 3. CRM Kayıtlarına ekle
             df_crm = pd.read_csv(CRM_DOSYASI)
             df_crm_yeni = pd.concat([df_crm, pd.DataFrame([yeni_kayit])], ignore_index=False)
             df_crm_yeni.to_csv(CRM_DOSYASI, index=False)
             
-            # 4. E-posta Gönderme İşlemi
             mail_metni = f"""Yeni Bir Castrol Form Siparişi / Rezervasyonu Alındı!
 
 Firma Adı: {firma_adi}
