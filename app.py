@@ -16,61 +16,68 @@ st.markdown("Stoku biten ürünler listeden otomatik kaldırılır, araç ve cro
 URUN_DOSYASI = "urunler_stok.csv"
 CRM_DOSYASI = "musteri_teklifleri.csv"
 
-# 1. Ürün Veritabanı
+# GÜNCEL ÜRÜN LİSTESİ (Resimler, Araç Modelleri ve Cross Kodları ile)
+df_guncel_urunler = pd.DataFrame([
+    {
+        "Kod": "31-356", 
+        "Parça Adı": "Yağ Filtresi", 
+        "Marka / Model": "Heavy Duty / Universal", 
+        "Cross 1": "Mann W950/26", 
+        "Cross 2": "Fleetguard LF16015", 
+        "Liste Fiyatı": 1200.0, 
+        "Stok": 50,
+        "Resim": "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+        "Kod": "32-393", 
+        "Parça Adı": "Hava Filtresi (Dış)", 
+        "Marka / Model": "Volvo / Renault Kamyon", 
+        "Cross 1": "Mann C30850", 
+        "Cross 2": "Donaldson P777638", 
+        "Liste Fiyatı": 2500.0, 
+        "Stok": 30,
+        "Resim": ""
+    },
+    {
+        "Kod": "50-501", 
+        "Parça Adı": "Hava Filtresi (İç)", 
+        "Marka / Model": "Volvo / Renault Kamyon", 
+        "Cross 1": "Mann CF1630", 
+        "Cross 2": "Donaldson P777639", 
+        "Liste Fiyatı": 1800.0, 
+        "Stok": 40,
+        "Resim": ""
+    },
+    {
+        "Kod": "4092-945", 
+        "Parça Adı": "Yakıt / Su Ayırıcı", 
+        "Marka / Model": "Mercedes Axor / Actros", 
+        "Cross 1": "Parker R120P", 
+        "Cross 2": "Baldwin BF7633", 
+        "Liste Fiyatı": 1500.0, 
+        "Stok": 25,
+        "Resim": ""
+    },
+    {
+        "Kod": "70-716", 
+        "Parça Adı": "Şanzıman Filtresi", 
+        "Marka / Model": "ZF Şanzıman Serisi", 
+        "Cross 1": "Mann H601", 
+        "Cross 2": "Mahle HX12", 
+        "Liste Fiyatı": 2200.0, 
+        "Stok": 15,
+        "Resim": ""
+    }
+])
+
+# 1. Ürün Veritabanı Kontrolü (Eğer dosya yoksa veya eksik sütun içeriyorsa otomatik yenile)
 if not os.path.exists(URUN_DOSYASI):
-    df_ilk_urunler = pd.DataFrame([
-        {
-            "Kod": "31-356", 
-            "Parça Adı": "Yağ Filtresi", 
-            "Marka / Model": "Heavy Duty / Universal", 
-            "Cross 1": "Mann W950/26", 
-            "Cross 2": "Fleetguard LF16015", 
-            "Liste Fiyatı": 1200.0, 
-            "Stok": 50,
-            "Resim": "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=300&q=80"
-        },
-        {
-            "Kod": "32-393", 
-            "Parça Adı": "Hava Filtresi (Dış)", 
-            "Marka / Model": "Volvo / Renault Kamyon", 
-            "Cross 1": "Mann C30850", 
-            "Cross 2": "Donaldson P777638", 
-            "Liste Fiyatı": 2500.0, 
-            "Stok": 30,
-            "Resim": ""
-        },
-        {
-            "Kod": "50-501", 
-            "Parça Adı": "Hava Filtresi (İç)", 
-            "Marka / Model": "Volvo / Renault Kamyon", 
-            "Cross 1": "Mann CF1630", 
-            "Cross 2": "Donaldson P777639", 
-            "Liste Fiyatı": 1800.0, 
-            "Stok": 40,
-            "Resim": ""
-        },
-        {
-            "Kod": "4092-945", 
-            "Parça Adı": "Yakıt / Su Ayırıcı", 
-            "Marka / Model": "Mercedes Axor / Actros", 
-            "Cross 1": "Parker R120P", 
-            "Cross 2": "Baldwin BF7633", 
-            "Liste Fiyatı": 1500.0, 
-            "Stok": 25,
-            "Resim": ""
-        },
-        {
-            "Kod": "70-716", 
-            "Parça Adı": "Şanzıman Filtresi", 
-            "Marka / Model": "ZF Şanzıman Serisi", 
-            "Cross 1": "Mann H601", 
-            "Cross 2": "Mahle HX12", 
-            "Liste Fiyatı": 2200.0, 
-            "Stok": 15,
-            "Resim": ""
-        }
-    ])
-    df_ilk_urunler.to_csv(URUN_DOSYASI, index=False)
+    df_guncel_urunler.to_csv(URUN_DOSYASI, index=False)
+else:
+    # Eski dosya varsa sütunlarını kontrol et, eksik varsa güncelle
+    df_kontrol = pd.read_csv(URUN_DOSYASI)
+    if 'Resim' not in df_kontrol.columns or 'Marka / Model' not in df_kontrol.columns:
+        df_guncel_urunler.to_csv(URUN_DOSYASI, index=False)
 
 # 2. CRM Teklif ve Sipariş Dosyası
 if not os.path.exists(CRM_DOSYASI):
@@ -82,11 +89,6 @@ if not os.path.exists(CRM_DOSYASI):
 
 # Güncel ürünleri yükle
 df_urunler = pd.read_csv(URUN_DOSYASI)
-
-# EMNİYET KONTROLÜ: Eski CSV dosyalarında 'Resim' sütunu yoksa otomatik ekle (Hata önleyici)
-if 'Resim' not in df_urunler.columns:
-    df_urunler['Resim'] = ""
-    df_urunler.to_csv(URUN_DOSYASI, index=False)
 
 # E-posta Gönderme Fonksiyonu
 def siparis_maili_gonder(MailIcerigi):
