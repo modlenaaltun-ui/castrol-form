@@ -9,74 +9,30 @@ from email.mime.multipart import MIMEMultipart
 # Sayfa Yapılandırması
 st.set_page_config(page_title="Castrol Form Stok & CRM Paneli", layout="wide")
 
-st.title("🚛 Castrol Form Filtre - Görsel, Stok ve Araç Bilgili B2B Paneli")
-st.markdown("Stoku biten ürünler listeden otomatik kaldırılır, araç ve cross referans bilgileri anında görüntülenir.")
+st.title("🚛 Castrol Form Filtre - B2B Satış & Sipariş Paneli")
+st.markdown("Stoku biten ürünler listeden otomatik kaldırılır, araç ve cross referans bilgileri görüntülenir.")
 
 # Dosya Yolları
 URUN_DOSYASI = "urunler_stok.csv"
 CRM_DOSYASI = "musteri_teklifleri.csv"
 
-# GÜNCEL ÜRÜN LİSTESİ
-df_guncel_urunler = pd.DataFrame([
-    {
-        "Kod": "31-356", 
-        "Parça Adı": "Yağ Filtresi", 
-        "Marka / Model": "Heavy Duty / Universal", 
-        "Cross 1": "Mann W950/26", 
-        "Cross 2": "Fleetguard LF16015", 
-        "Liste Fiyatı": 1200.0, 
-        "Stok": 50,
-        "Resim": "31-356.jpg"  # Klasördeki dosya adı
-    },
-    {
-        "Kod": "32-393", 
-        "Parça Adı": "Hava Filtresi (Dış)", 
-        "Marka / Model": "Volvo / Renault Kamyon", 
-        "Cross 1": "Mann C30850", 
-        "Cross 2": "Donaldson P777638", 
-        "Liste Fiyatı": 2500.0, 
-        "Stok": 30,
-        "Resim": ""
-    },
-    {
-        "Kod": "50-501", 
-        "Parça Adı": "Hava Filtresi (İç)", 
-        "Marka / Model": "Volvo / Renault Kamyon", 
-        "Cross 1": "Mann CF1630", 
-        "Cross 2": "Donaldson P777639", 
-        "Liste Fiyatı": 1800.0, 
-        "Stok": 40,
-        "Resim": ""
-    },
-    {
-        "Kod": "4092-945", 
-        "Parça Adı": "Yakıt / Su Ayırıcı", 
-        "Marka / Model": "Mercedes Axor / Actros", 
-        "Cross 1": "Parker R120P", 
-        "Cross 2": "Baldwin BF7633", 
-        "Liste Fiyatı": 1500.0, 
-        "Stok": 25,
-        "Resim": ""
-    },
-    {
-        "Kod": "70-716", 
-        "Parça Adı": "Şanzıman Filtresi", 
-        "Marka / Model": "ZF Şanzıman Serisi", 
-        "Cross 1": "Mann H601", 
-        "Cross 2": "Mahle HX12", 
-        "Liste Fiyatı": 2200.0, 
-        "Stok": 15,
-        "Resim": ""
-    }
-])
-
+# Varsayılan Ürün Dosyası Yoksa Oluştur (Sadece ilk kurulumda çalışır)
 if not os.path.exists(URUN_DOSYASI):
-    df_guncel_urunler.to_csv(URUN_DOSYASI, index=False)
-else:
-    df_kontrol = pd.read_csv(URUN_DOSYASI)
-    if 'Resim' not in df_kontrol.columns or 'Marka / Model' not in df_kontrol.columns:
-        df_guncel_urunler.to_csv(URUN_DOSYASI, index=False)
+    df_ilk_urunler = pd.DataFrame([
+        {
+            "Kod": "31-356", 
+            "Parça Adı": "Yağ Filtresi", 
+            "Marka / Model": "Heavy Duty / Universal", 
+            "Cross 1": "Mann W950/26", 
+            "Cross 2": "Fleetguard LF16015", 
+            "Liste Fiyatı": 1200.0, 
+            "Stok": 50,
+            "Resim": ""
+        }
+    ])
+    df_ilk_urunler.to_csv(URUN_DOSYASI, index=False)
 
+# CRM Teklif Dosyası Yoksa Oluştur
 if not os.path.exists(CRM_DOSYASI):
     df_empty_crm = pd.DataFrame(columns=[
         "Tarih", "Firma Adı", "Yetkili", "Telefon", "İl", "İlçe", "Açık Adres",
@@ -84,8 +40,10 @@ if not os.path.exists(CRM_DOSYASI):
     ])
     df_empty_crm.to_csv(CRM_DOSYASI, index=False)
 
+# Excel / CSV'den güncel ürünleri oku (Artık sizin düzenlediğiniz veriler okunur)
 df_urunler = pd.read_csv(URUN_DOSYASI)
 
+# E-posta Gönderme Fonksiyonu
 def siparis_maili_gonder(MailIcerigi):
     gonderen_email = "evrimileri0@gmail.com"
     gonderen_sifre = "BURAYA_GMAIL_UYGULAMA_SIFRENIZI_YAZIN"
@@ -95,6 +53,7 @@ def siparis_maili_gonder(MailIcerigi):
         msg['From'] = gonderen_email
         msg['To'] = "evrimileri0@gmail.com"
         msg['Subject'] = "🚛 Yeni Castrol Form Siparişi / Rezervasyonu!"
+        
         msg.attach(MIMEText(MailIcerigi, 'plain', 'utf-8'))
         
         server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -127,6 +86,8 @@ st.subheader("📦 Ürün Kataloğu ve Stok Seçimi")
 
 sepet_verileri = []
 guncellenmis_urunler = df_urunler.copy()
+
+# Stok > 0 olan ürünleri filtrele
 aktif_urunler = guncellenmis_urunler[guncellenmis_urunler['Stok'] > 0]
 
 if aktif_urunler.empty:
@@ -136,12 +97,12 @@ else:
         col_img, col_detay = st.columns([1, 4])
         
         with col_img:
-            resim_yolu = str(row['Resim'])
-            # Eğer bilgisayarda o isimde bir resim dosyası varsa göster
-            if resim_yolu and os.path.exists(resim_yolu):
-                st.image(resim_yolu, width=100)
-            elif resim_yolu.startswith("http"):
-                st.image(resim_yolu, width=100)
+            # Resim sütunu var mı ve dolu mu kontrol et
+            if 'Resim' in row and pd.notna(row['Resim']) and str(row['Resim']).startswith("http"):
+                try:
+                    st.image(str(row['Resim']), width=100)
+                except:
+                    st.info("📦 Görsel Yüklenemedi")
             else:
                 st.info("📦 Görsel Yok")
                 
@@ -234,7 +195,7 @@ Tarih: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 """
             mail_sonuc = siparis_maili_gonder(mail_metni)
             if mail_sonuc:
-                st.success("✅ Sipariş başarıyla kaydedildi, stoktan düşüldü ve **evrimileri0@gmail.com** adresine mail gönderildi!")
+                st.success("✅ Sipariş başarıyla kaydedildi, stoktan düşüldó ve **evrimileri0@gmail.com** adresine mail gönderildi!")
             else:
                 st.warning("⚠️ Sipariş ve stok kaydedildi fakat mail gönderilemedi. (Gmail uygulama şifrenizi kontrol edin).")
 else:
