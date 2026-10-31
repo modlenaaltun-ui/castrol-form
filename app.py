@@ -16,7 +16,7 @@ st.markdown("Stoku biten ürünler listeden otomatik kaldırılır, araç ve cro
 URUN_DOSYASI = "urunler_stok.csv"
 CRM_DOSYASI = "musteri_teklifleri.csv"
 
-# GÜNCEL ÜRÜN LİSTESİ (Resimler, Araç Modelleri ve Cross Kodları ile)
+# GÜNCEL ÜRÜN LİSTESİ
 df_guncel_urunler = pd.DataFrame([
     {
         "Kod": "31-356", 
@@ -26,7 +26,7 @@ df_guncel_urunler = pd.DataFrame([
         "Cross 2": "Fleetguard LF16015", 
         "Liste Fiyatı": 1200.0, 
         "Stok": 50,
-        "Resim": "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=300&q=80"
+        "Resim": "31-356.jpg"  # Klasördeki dosya adı
     },
     {
         "Kod": "32-393", 
@@ -70,16 +70,13 @@ df_guncel_urunler = pd.DataFrame([
     }
 ])
 
-# 1. Ürün Veritabanı Kontrolü (Eğer dosya yoksa veya eksik sütun içeriyorsa otomatik yenile)
 if not os.path.exists(URUN_DOSYASI):
     df_guncel_urunler.to_csv(URUN_DOSYASI, index=False)
 else:
-    # Eski dosya varsa sütunlarını kontrol et, eksik varsa güncelle
     df_kontrol = pd.read_csv(URUN_DOSYASI)
     if 'Resim' not in df_kontrol.columns or 'Marka / Model' not in df_kontrol.columns:
         df_guncel_urunler.to_csv(URUN_DOSYASI, index=False)
 
-# 2. CRM Teklif ve Sipariş Dosyası
 if not os.path.exists(CRM_DOSYASI):
     df_empty_crm = pd.DataFrame(columns=[
         "Tarih", "Firma Adı", "Yetkili", "Telefon", "İl", "İlçe", "Açık Adres",
@@ -87,10 +84,8 @@ if not os.path.exists(CRM_DOSYASI):
     ])
     df_empty_crm.to_csv(CRM_DOSYASI, index=False)
 
-# Güncel ürünleri yükle
 df_urunler = pd.read_csv(URUN_DOSYASI)
 
-# E-posta Gönderme Fonksiyonu
 def siparis_maili_gonder(MailIcerigi):
     gonderen_email = "evrimileri0@gmail.com"
     gonderen_sifre = "BURAYA_GMAIL_UYGULAMA_SIFRENIZI_YAZIN"
@@ -100,7 +95,6 @@ def siparis_maili_gonder(MailIcerigi):
         msg['From'] = gonderen_email
         msg['To'] = "evrimileri0@gmail.com"
         msg['Subject'] = "🚛 Yeni Castrol Form Siparişi / Rezervasyonu!"
-        
         msg.attach(MIMEText(MailIcerigi, 'plain', 'utf-8'))
         
         server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -121,7 +115,6 @@ telefon = st.sidebar.text_input("Telefon Numarası", placeholder="0532...")
 il = st.sidebar.selectbox("İl", ["İstanbul", "Ankara", "İzmir", "Bursa", "Konya", "Kocaeli", "Adana", "Diğer"])
 ilce = st.sidebar.text_input("İlçe", placeholder="Örn: İkitelli / Başakşehir")
 acik_adres = st.sidebar.text_area("Detaylı Açık Adres", placeholder="Sanayi Sitesi, Blok No, Dükkan No...")
-
 musteri_notu = st.sidebar.text_area("Sipariş / Sevkiyat Notu", placeholder="Acil sevkiyat olacak.")
 
 st.sidebar.markdown("---")
@@ -134,8 +127,6 @@ st.subheader("📦 Ürün Kataloğu ve Stok Seçimi")
 
 sepet_verileri = []
 guncellenmis_urunler = df_urunler.copy()
-
-# Stok > 0 olan ürünleri filtrele
 aktif_urunler = guncellenmis_urunler[guncellenmis_urunler['Stok'] > 0]
 
 if aktif_urunler.empty:
@@ -145,8 +136,12 @@ else:
         col_img, col_detay = st.columns([1, 4])
         
         with col_img:
-            if pd.notna(row['Resim']) and str(row['Resim']).startswith("http"):
-                st.image(row['Resim'], width=100)
+            resim_yolu = str(row['Resim'])
+            # Eğer bilgisayarda o isimde bir resim dosyası varsa göster
+            if resim_yolu and os.path.exists(resim_yolu):
+                st.image(resim_yolu, width=100)
+            elif resim_yolu.startswith("http"):
+                st.image(resim_yolu, width=100)
             else:
                 st.info("📦 Görsel Yok")
                 
