@@ -43,7 +43,7 @@ if not os.path.exists(CRM_DOSYASI):
 # Excel / CSV'den ürünleri oku
 df_urunler = pd.read_csv(URUN_DOSYASI)
 
-# --- EMNİYET KONTROLÜ (Sütun adlarını otomatik düzeltir, KeyError'u engeller) ---
+# --- EMNİYET KONTROLÜ (Sütun adlarını otomatik düzeltir) ---
 kolon_duzeltme = {}
 for col in df_urunler.columns:
     col_lower = col.strip().lower()
@@ -80,8 +80,8 @@ if 'Cross 2' not in df_urunler.columns:
 if 'Resim' not in df_urunler.columns:
     df_urunler['Resim'] = ""
 
-# Stok sütununu sayısal değere çevir
-df_urunler['Stok'] = pd.to_numeric(df_urunler['Stok'], errors='fillna').fillna(0)
+# Stok ve Fiyat değerlerini sayısal formata güvenle çevir
+df_urunler['Stok'] = pd.to_numeric(df_urunler['Stok'], errors='coerce').fillna(0)
 df_urunler['Liste Fiyatı'] = pd.to_numeric(df_urunler['Liste Fiyatı'], errors='coerce').fillna(0)
 
 
@@ -182,7 +182,7 @@ if len(sepet_verileri) > 0:
     col_a.metric("Toplam Liste", f"{toplam_liste_tutar:,.2f} TL")
     col_b.metric(f"Toptancı Ödeyeceği (%{toptanci_iskonto_orani})", f"{toptanci_maliyeti:,.2f} TL")
     col_c.metric(f"Komisyonun (%{benim_komisyon_orani})", f"{komisyonum:,.2f} TL", delta="Net Kazanç")
-    col_d.metric("Toptancı Kârı", f"{(toplam_liste_tutar - toptanci_maliyeti):,.2f} TL")
+    col_d.metric("Toptancı Kârı", f"{(top_liste_tutar if 'top_liste_tutar' in locals() else toplam_liste_tutar - toptanci_maliyeti):,.2f} TL") # Düzeltildi
     
     with st.expander("Seçilen Ürünlerin Listesi"):
         st.dataframe(df_sepet)
@@ -252,3 +252,4 @@ if os.path.exists(CRM_DOSYASI):
         st.dataframe(df_kayitlar, use_container_width=True)
     else:
         st.write("Henüz kaydedilmiş sipariş bulunmuyor.")
+    
