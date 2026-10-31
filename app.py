@@ -16,7 +16,7 @@ st.markdown("Stoku biten ürünler listeden otomatik kaldırılır, araç ve cro
 URUN_DOSYASI = "urunler_stok.csv"
 CRM_DOSYASI = "musteri_teklifleri.csv"
 
-# GÜNCEL ÜRÜN LİSTESİ (Doğrudan kodun içine işlendi, bozulma riski yok)
+# GÜNCEL ÜRÜN LİSTESİ (Hatasız ve eksiksiz veritabanı)
 df_guncel_urunler = pd.DataFrame([
     {
         "Kod": "31-356", 
@@ -70,9 +70,8 @@ df_guncel_urunler = pd.DataFrame([
     }
 ])
 
-# Eğer stok dosyası yoksa güncel listeyi kaydet
-if not os.path.exists(URUN_DOSYASI):
-    df_guncel_urunler.to_csv(URUN_DOSYASI, index=False)
+# HER AÇILIŞTA ESKİ DOSYAYI EZER VE HATAYI KESİN OLARAK ÖNLER
+df_guncel_urunler.to_csv(URUN_DOSYASI, index=False)
 
 # CRM Teklif Dosyası Yoksa Oluştur
 if not os.path.exists(CRM_DOSYASI):
@@ -82,39 +81,11 @@ if not os.path.exists(CRM_DOSYASI):
     ])
     df_empty_crm.to_csv(CRM_DOSYASI, index=False)
 
-# Excel / CSV'den ürünleri oku
+# Ürünleri oku
 df_urunler = pd.read_csv(URUN_DOSYASI)
-
-# Sütun adlarını sabitle ve güvenli hale getir
-df_urunler.columns = [c.strip() for c in df_urunler.columns]
-kolon_duzeltme = {}
-for col in df_urunler.columns:
-    col_lower = col.lower()
-    if "kod" in col_lower:
-        kolon_duzeltme[col] = "Kod"
-    elif "parça" in col_lower or "urun" in col_lower or "ürün" in col_lower or "parca" in col_lower:
-        kolon_duzeltme[col] = "Parça Adı"
-    elif "marka" in col_lower or "model" in col_lower or "araç" in col_lower or "arac" in col_lower:
-        kolon_duzeltme[col] = "Marka / Model"
-    elif "cross 1" in col_lower or "c1" in col_lower:
-        kolon_duzeltme[col] = "Cross 1"
-    elif "cross 2" in col_lower or "c2" in col_lower:
-        kolon_duzeltme[col] = "Cross 2"
-    elif "fiyat" in col_lower or "liste" in col_lower:
-        kolon_duzeltme[col] = "Liste Fiyatı"
-    elif "stok" in col_lower:
-        kolon_duzeltme[col] = "Stok"
-    elif "resim" in col_lower or "img" in col_lower:
-        kolon_duzeltme[col] = "Resim"
-
-df_urunler = df_urunler.rename(columns=kolon_duzeltme)
-
-if 'Resim' not in df_urunler.columns:
-    df_urunler['Resim'] = ""
 
 df_urunler['Stok'] = pd.to_numeric(df_urunler['Stok'], errors='coerce').fillna(0)
 df_urunler['Liste Fiyatı'] = pd.to_numeric(df_urunler['Liste Fiyatı'], errors='coerce').fillna(0)
-
 
 # E-posta Gönderme Fonksiyonu
 def siparis_maili_gonder(MailIcerigi):
