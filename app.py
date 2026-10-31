@@ -9,21 +9,66 @@ from email.mime.multipart import MIMEMultipart
 # Sayfa Yapılandırması
 st.set_page_config(page_title="Castrol Form Stok & CRM Paneli", layout="wide")
 
-st.title("🚛 Castrol Form Filtre - Gelişmiş B2B Satış & Sipariş Paneli")
-st.markdown("Ürün stoklarını yönetebilir, il/ilçe bazlı detaylı müşteri adresi girebilir ve siparişleri anında e-posta ile alabilirsiniz.")
+st.title("🚛 Castrol Form Filtre - Görsel, Stok ve Araç Bilgili B2B Paneli")
+st.markdown("Stoku biten ürünler listeden otomatik kaldırılır, araç ve cross referans bilgileri anında görüntülenir.")
 
 # Dosya Yolları
 URUN_DOSYASI = "urunler_stok.csv"
 CRM_DOSYASI = "musteri_teklifleri.csv"
 
-# 1. Ürün Veritabanı
+# 1. Ürün Veritabanı (Senin gönderdiğin güncel tablo yapısı ve resim sütunu ile)
 if not os.path.exists(URUN_DOSYASI):
     df_ilk_urunler = pd.DataFrame([
-        {"Kod": "CF-1001", "Parça Adı": "Yağ Filtresi", "Marka / Model": "Heavy Duty / Universal", "Cross 1": "Mann W950/26", "Cross 2": "Fleetguard LF16015", "Liste Fiyatı": 1200.0, "Stok": 50},
-        {"Kod": "CF-2005", "Parça Adı": "Hava Filtresi (Dış)", "Marka / Model": "Volvo / Renault Kamyon", "Cross 1": "Mann C30850", "Cross 2": "Donaldson P777638", "Liste Fiyatı": 2500.0, "Stok": 30},
-        {"Kod": "CF-2006", "Parça Adı": "Hava Filtresi (İç)", "Marka / Model": "Volvo / Renault Kamyon", "Cross 1": "Mann CF1630", "Cross 2": "Donaldson P777639", "Liste Fiyatı": 1800.0, "Stok": 40},
-        {"Kod": "CF-3010", "Parça Adı": "Yakıt / Su Ayırıcı", "Marka / Model": "Mercedes Axor / Actros", "Cross 1": "Parker R120P", "Cross 2": "Baldwin BF7633", "Liste Fiyatı": 1500.0, "Stok": 25},
-        {"Kod": "CF-4020", "Parça Adı": "Şanzıman Filtresi", "Marka / Model": "ZF Şanzıman Serisi", "Cross 1": "Mann H601", "Cross 2": "Mahle HX12", "Liste Fiyatı": 2200.0, "Stok": 15}
+        {
+            "Kod": "31-356", 
+            "Parça Adı": "Yağ Filtresi", 
+            "Marka / Model": "Heavy Duty / Universal", 
+            "Cross 1": "Mann W950/26", 
+            "Cross 2": "Fleetguard LF16015", 
+            "Liste Fiyatı": 1200.0, 
+            "Stok": 50,
+            "Resim": "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=300&q=80" # Örnek / Yüklenen ürün görseli temeli
+        },
+        {
+            "Kod": "32-393", 
+            "Parça Adı": "Hava Filtresi (Dış)", 
+            "Marka / Model": "Volvo / Renault Kamyon", 
+            "Cross 1": "Mann C30850", 
+            "Cross 2": "Donaldson P777638", 
+            "Liste Fiyatı": 2500.0, 
+            "Stok": 30,
+            "Resim": ""
+        },
+        {
+            "Kod": "50-501", 
+            "Parça Adı": "Hava Filtresi (İç)", 
+            "Marka / Model": "Volvo / Renault Kamyon", 
+            "Cross 1": "Mann CF1630", 
+            "Cross 2": "Donaldson P777639", 
+            "Liste Fiyatı": 1800.0, 
+            "Stok": 40,
+            "Resim": ""
+        },
+        {
+            "Kod": "4092-945", 
+            "Parça Adı": "Yakıt / Su Ayırıcı", 
+            "Marka / Model": "Mercedes Axor / Actros", 
+            "Cross 1": "Parker R120P", 
+            "Cross 2": "Baldwin BF7633", 
+            "Liste Fiyatı": 1500.0, 
+            "Stok": 25,
+            "Resim": ""
+        },
+        {
+            "Kod": "70-716", 
+            "Parça Adı": "Şanzıman Filtresi", 
+            "Marka / Model": "ZF Şanzıman Serisi", 
+            "Cross 1": "Mann H601", 
+            "Cross 2": "Mahle HX12", 
+            "Liste Fiyatı": 2200.0, 
+            "Stok": 15,
+            "Resim": ""
+        }
     ])
     df_ilk_urunler.to_csv(URUN_DOSYASI, index=False)
 
@@ -38,10 +83,10 @@ if not os.path.exists(CRM_DOSYASI):
 # Güncel ürünleri yükle
 df_urunler = pd.read_csv(URUN_DOSYASI)
 
-# E-posta Gönderme Fonksiyonu (Sabit olarak evrimileri0@gmail.com hedeflendi)
+# E-posta Gönderme Fonksiyonu (evrimileri0@gmail.com adresine sabitlendi)
 def siparis_maili_gonder(MailIcerigi):
-    gonderen_email = "evrimileri0@gmail.com"  # Kendi Gmail adresin
-    gonderen_sifre = "BURAYA_GMAIL_UYGULAMA_SIFRENIZI_YAZIN"  # Gmail Uygulama Şifresi buraya yazılacak
+    gonderen_email = "evrimileri0@gmail.com"
+    gonderen_sifre = "BURAYA_GMAIL_UYGULAMA_SIFRENIZI_YAZIN"
     
     try:
         msg = MIMEMultipart()
@@ -60,7 +105,7 @@ def siparis_maili_gonder(MailIcerigi):
     except Exception as e:
         return False
 
-# Yan Menü: Detaylı Müşteri ve Adres Bilgileri
+# Yan Menü: Müşteri ve Adres Bilgileri
 st.sidebar.header("👤 Müşteri & Lokasyon Bilgileri")
 firma_adi = st.sidebar.text_input("Şirket / Firma Adı", placeholder="Örn: Özkanlar Ağır Vasıta Ltd.")
 yetkili_adi = st.sidebar.text_input("Yetkili Adı Soyadı", placeholder="Örn: Ahmet Bey")
@@ -77,31 +122,50 @@ st.sidebar.header("⚙️ Ticari Parametreler")
 toptanci_iskonto_orani = st.sidebar.slider("Toptancı İskontosu (%)", min_value=10, max_value=50, value=30, step=5)
 benim_komisyon_orani = st.sidebar.slider("Komisyon Oranım (%)", min_value=1, max_value=15, value=5, step=1)
 
-# Ana Ekran: Ürün Kataloğu
+# Ana Ekran: Ürün Kataloğu (Stoku Bitenler Listeden Kaldırılır)
 st.subheader("📦 Ürün Kataloğu ve Stok Seçimi")
+
 sepet_verileri = []
 guncellenmis_urunler = df_urunler.copy()
 
-for index, row in guncellenmis_urunler.iterrows():
-    st.markdown(f"**Kod:** `{row['Kod']}` | **Ürün:** {row['Parça Adı']} | **Model:** *{row['Marka / Model']}*")
-    st.caption(f"🔄 **Cross 1:** {row['Cross 1']} | **Cross 2:** {row['Cross 2']} | 💰 **Liste:** {row['Liste Fiyatı']:,.2f} TL | 📦 **Stok:** {row['Stok']} adet")
-    
-    col1, col2 = st.columns([1, 3])
-    with col1:
-        secilen_adet = st.number_input(f"Adet Al ({row['Kod']})", min_value=0, max_value=int(row['Stok']), value=0, step=1, key=row['Kod'])
-    
-    if secilen_adet > 0:
-        toplam_tutar = secilen_adet * row['Liste Fiyatı']
-        sepet_verileri.append({
-            "Kod": row['Kod'],
-            "Parça Adı": row['Parça Adı'],
-            "Birim Fiyat": row['Liste Fiyatı'],
-            "Adet": secilen_adet,
-            "Toplam Liste": toplam_tutar
-        })
-        guncellenmis_urunler.loc[index, 'Stok'] = row['Stok'] - secilen_adet
+# Stok > 0 olan ürünleri filtrele (Stoku bitenler otomatik listeden kalkar)
+aktif_urunler = guncellenmis_urunler[guncellenmis_urunler['Stok'] > 0]
 
-    st.markdown("---")
+if aktif_urunler.empty:
+    st.warning("⚠️ Şu anda stokta aktif ürün bulunmamaktadır.")
+else:
+    for index, row in aktif_urunler.iterrows():
+        # Kolonlar halinde görsel ve detayları gösterelim
+        col_img, col_detay = st.columns([1, 4])
+        
+        with col_img:
+            # Eğer ürünün görsel linki varsa göster, yoksa varsayılan ikon/yazı göster
+            if pd.notna(row['Resim']) and str(row['Resim']).startswith("http"):
+                st.image(row['Resim'], width=100)
+            else:
+                st.info("📦 Görsel Yok")
+                
+        with col_detay:
+            st.markdown(f"### Kod: `{row['Kod']}` - {row['Parça Adı']}")
+            st.markdown(f"🚗 **Araç Bilgisi (Marka / Model):** *{row['Marka / Model']}*")
+            st.caption(f"🔄 **Cross 1:** {row['Cross 1']} | **Cross 2:** {row['Cross 2']} | 💰 **Liste Fiyatı:** {row['Liste Fiyatı']:,.2f} TL | 📦 **Kalan Stok:** {row['Stok']} adet")
+            
+            secilen_adet = st.number_input(f"Adet Al ({row['Kod']})", min_value=0, max_value=int(row['Stok']), value=0, step=1, key=str(row['Kod']))
+            
+            if secilen_adet > 0:
+                toplam_tutar = secilen_adet * row['Liste Fiyatı']
+                sepet_verileri.append({
+                    "Kod": row['Kod'],
+                    "Parça Adı": row['Parça Adı'],
+                    "Birim Fiyat": row['Liste Fiyatı'],
+                    "Adet": secilen_adet,
+                    "Toplam Liste": toplam_tutar
+                })
+                # Orijinal dataframe üzerindeki stoku düş
+                orijinal_index = guncellenmis_urunler[guncellenmis_urunler['Kod'] == row['Kod']].index[0]
+                guncellenmis_urunler.loc[orijinal_index, 'Stok'] = row['Stok'] - secilen_adet
+
+        st.markdown("---")
 
 # Hesaplama ve Sipariş Tamamlama Alanı
 if len(sepet_verileri) > 0:
@@ -129,7 +193,7 @@ if len(sepet_verileri) > 0:
         if not firma_adi:
             st.error("Lütfen sol menüden Firma / Şirket Adı giriniz!")
         else:
-            # 1. Stokları güncelle
+            # 1. Stokları güncelle (Stoku bitenler otomatik gizlenecek)
             guncellenmis_urunler.to_csv(URUN_DOSYASI, index=False)
             
             # 2. Ürün özet metni
@@ -155,7 +219,7 @@ if len(sepet_verileri) > 0:
             df_crm_yeni = pd.concat([df_crm, pd.DataFrame([yeni_kayit])], ignore_index=False)
             df_crm_yeni.to_csv(CRM_DOSYASI, index=False)
             
-            # 4. E-posta Gönderme İşlemi (evrimileri0@gmail.com adresine)
+            # 4. E-posta Gönderme İşlemi
             mail_metni = f"""Yeni Bir Castrol Form Siparişi / Rezervasyonu Alındı!
 
 Firma Adı: {firma_adi}
@@ -177,7 +241,7 @@ Tarih: {datetime.now().strftime('%Y-%m-%d %H:%M')}
             if mail_sonuc:
                 st.success("✅ Sipariş başarıyla kaydedildi, stoktan düşüldü ve **evrimileri0@gmail.com** adresine mail gönderildi!")
             else:
-                st.warning("⚠️ Sipariş ve stok kaydedildi fakat mail gönderilemedi. (Gmail uygulama şifrenizi kod içerisindeki alana doğru yazdığınızdan emin olun).")
+                st.warning("⚠️ Sipariş ve stok kaydedildi fakat mail gönderilemedi. (Gmail uygulama şifrenizi kontrol edin).")
 else:
     st.info("💡 Sipariş oluşturmak için yukarıdaki ürünlerden adet seçin.")
 
