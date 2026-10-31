@@ -46,7 +46,7 @@ df_guncel_urunler = pd.DataFrame([
         "Cross 2": "Donaldson P777639", 
         "Liste Fiyatı": 180.0, 
         "Stok": 40,
-        "Resim": ""
+        "Resim": "https://i.hizliresim.com/5msnhoer.jpg"
     },
     {
         "Kod": "92-945", 
@@ -66,7 +66,7 @@ df_guncel_urunler = pd.DataFrame([
         "Cross 2": "Mahle HX12", 
         "Liste Fiyatı": 220.0, 
         "Stok": 15,
-        "Resim": ""
+        "Resim": "31-356.jpg"
     }
 ])
 
