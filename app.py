@@ -16,7 +16,7 @@ st.markdown("Stoku biten ürünler listeden otomatik kaldırılır, araç ve cro
 URUN_DOSYASI = "urunler_stok.csv"
 CRM_DOSYASI = "musteri_teklifleri.csv"
 
-# Varsayılan Ürün Dosyası Yoksa Oluştur (Sadece ilk kurulumda çalışır)
+# Varsayılan Ürün Dosyası Yoksa Oluştur
 if not os.path.exists(URUN_DOSYASI):
     df_ilk_urunler = pd.DataFrame([
         {
@@ -40,8 +40,50 @@ if not os.path.exists(CRM_DOSYASI):
     ])
     df_empty_crm.to_csv(CRM_DOSYASI, index=False)
 
-# Excel / CSV'den güncel ürünleri oku (Artık sizin düzenlediğiniz veriler okunur)
+# Excel / CSV'den ürünleri oku
 df_urunler = pd.read_csv(URUN_DOSYASI)
+
+# --- EMNİYET KONTROLÜ (Sütun adlarını otomatik düzeltir, KeyError'u engeller) ---
+kolon_duzeltme = {}
+for col in df_urunler.columns:
+    col_lower = col.strip().lower()
+    if "kod" in col_lower:
+        kolon_duzeltme[col] = "Kod"
+    elif "parça" in col_lower or "urun" in col_lower or "ürün" in col_lower:
+        kolon_duzeltme[col] = "Parça Adı"
+    elif "marka" in col_lower or "model" in col_lower or "araç" in col_lower:
+        kolon_duzeltme[col] = "Marka / Model"
+    elif "cross 1" in col_lower:
+        kolon_duzeltme[col] = "Cross 1"
+    elif "cross 2" in col_lower:
+        kolon_duzeltme[col] = "Cross 2"
+    elif "fiyat" in col_lower:
+        kolon_duzeltme[col] = "Liste Fiyatı"
+    elif "stok" in col_lower:
+        kolon_duzeltme[col] = "Stok"
+    elif "resim" in col_lower or "img" in col_lower:
+        kolon_duzeltme[col] = "Resim"
+
+df_urunler = df_urunler.rename(columns=kolon_duzeltme)
+
+# Eksik zorunlu kolonlar varsa varsayılan ekle
+if 'Stok' not in df_urunler.columns:
+    df_urunler['Stok'] = 50
+if 'Liste Fiyatı' not in df_urunler.columns:
+    df_urunler['Liste Fiyatı'] = 1000.0
+if 'Marka / Model' not in df_urunler.columns:
+    df_urunler['Marka / Model'] = "Universal"
+if 'Cross 1' not in df_urunler.columns:
+    df_urunler['Cross 1'] = "-"
+if 'Cross 2' not in df_urunler.columns:
+    df_urunler['Cross 2'] = "-"
+if 'Resim' not in df_urunler.columns:
+    df_urunler['Resim'] = ""
+
+# Stok sütununu sayısal değere çevir
+df_urunler['Stok'] = pd.to_numeric(df_urunler['Stok'], errors='fillna').fillna(0)
+df_urunler['Liste Fiyatı'] = pd.to_numeric(df_urunler['Liste Fiyatı'], errors='coerce').fillna(0)
+
 
 # E-posta Gönderme Fonksiyonu
 def siparis_maili_gonder(MailIcerigi):
@@ -97,7 +139,6 @@ else:
         col_img, col_detay = st.columns([1, 4])
         
         with col_img:
-            # Resim sütunu var mı ve dolu mu kontrol et
             if 'Resim' in row and pd.notna(row['Resim']) and str(row['Resim']).startswith("http"):
                 try:
                     st.image(str(row['Resim']), width=100)
@@ -109,7 +150,7 @@ else:
         with col_detay:
             st.markdown(f"### Kod: `{row['Kod']}` - {row['Parça Adı']}")
             st.markdown(f"🚗 **Araç Bilgisi (Marka / Model):** *{row['Marka / Model']}*")
-            st.caption(f"🔄 **Cross 1:** {row['Cross 1']} | **Cross 2:** {row['Cross 2']} | 💰 **Liste Fiyatı:** {row['Liste Fiyatı']:,.2f} TL | 📦 **Kalan Stok:** {row['Stok']} adet")
+            st.caption(f"🔄 **Cross 1:** {row['Cross 1']} | **Cross 2:** {row['Cross 2']} | 💰 **Liste Fiyatı:** {row['Liste Fiyatı']:,.2f} TL | 📦 **Kalan Stok:** {int(row['Stok'])} adet")
             
             secilen_adet = st.number_input(f"Adet Al ({row['Kod']})", min_value=0, max_value=int(row['Stok']), value=0, step=1, key=str(row['Kod']))
             
@@ -195,7 +236,7 @@ Tarih: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 """
             mail_sonuc = siparis_maili_gonder(mail_metni)
             if mail_sonuc:
-                st.success("✅ Sipariş başarıyla kaydedildi, stoktan düşüldó ve **evrimileri0@gmail.com** adresine mail gönderildi!")
+                st.success("✅ Sipariş başarıyla kaydedildi, stoktan düşüldü ve **evrimileri0@gmail.com** adresine mail gönderildi!")
             else:
                 st.warning("⚠️ Sipariş ve stok kaydedildi fakat mail gönderilemedi. (Gmail uygulama şifrenizi kontrol edin).")
 else:
